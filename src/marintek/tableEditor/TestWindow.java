@@ -86,6 +86,8 @@ public class TestWindow extends Shell {
 		//
 		WritableList wl = new WritableList(testData.getDataTable(), TestData.Entry.class);
 		tableViewer.setInput(wl);
+		
+		
 		MenuItem mntmNewRow = new MenuItem(menu, SWT.NONE);
 		mntmNewRow.addSelectionListener(new SelectionAdapter() {
 			@Override
