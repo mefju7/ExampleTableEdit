@@ -1,5 +1,6 @@
 package marintek.tableEditor;
 
+
 import java.util.ArrayList;
 
 import marintek.tableEditor.TestData.Entry;
@@ -9,6 +10,7 @@ import org.eclipse.jface.databinding.viewers.ObservableListContentProvider;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.EditingSupport;
+import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TextCellEditor;
@@ -16,6 +18,7 @@ import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -87,7 +90,8 @@ public class TestWindow extends Shell {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				Entry rowAdded = testData.addRow();
-				wl.add(rowAdded);
+				wl.add(rowAdded); // adding to writeable list updates table and data model
+				tableViewer.editElement(rowAdded, 1); // starts editing
 			}
 		});
 		mntmNewRow.setText("New Row");
@@ -116,10 +120,12 @@ public class TestWindow extends Shell {
 		table.setHeaderVisible(true);
 		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
+		
 		TableViewerColumn tvColA = new TableViewerColumn(tableViewer, SWT.NONE);
 		TableColumn tblclmnA = tvColA.getColumn();
 		tblclmnA.setWidth(100);
 		tblclmnA.setText(COL_A);
+		tblclmnA.setAlignment(SWT.RIGHT);
 		tvColA.setLabelProvider(new CellLabelProvider() {
 			
 			@Override
@@ -162,13 +168,18 @@ public class TestWindow extends Shell {
 		tblclmnB.setWidth(100);
 		tblclmnB.setText(COL_B);
 		tblclmnB.setAlignment(SWT.CENTER);
-		tvColB.setLabelProvider(new CellLabelProvider() {
+		 Color bgColor = new Color(parent.getDisplay(),255,128,128);
+		tvColB.setLabelProvider(new StyledCellLabelProvider()  {
 			
 			@Override
 			public void update(ViewerCell cell) {
 				Entry element = (Entry) cell.getElement();
-				cell.setText(String.format("%04d", element.getNumber()));
-				
+				String num = String.format("%04d", element.getNumber());
+				cell.setText(num);
+				if(element.getNumber()>10)
+				{
+					cell.setBackground(bgColor);
+				}
 			}
 		});
 		
