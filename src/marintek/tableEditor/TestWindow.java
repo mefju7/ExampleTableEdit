@@ -45,6 +45,7 @@ public class TestWindow extends Shell {
 	// private Table table;
 	private TableViewer tableViewer;
 	private WritableList wl;
+	private Table table;
 
 	public TestWindow(Display display) {
 		setSize(620, 479);
@@ -108,6 +109,7 @@ public class TestWindow extends Shell {
 				for (Entry et : dt) {
 					System.out.println(et.toString());
 				}
+				System.out.printf("have %d table items, %d wl items\n",table.getItemCount(),wl.size());
 			}
 		});
 		mntmDebug.setText("Debug");
@@ -116,9 +118,9 @@ public class TestWindow extends Shell {
 	private void createContent(Composite parent) {
 		// TODO Auto-generated method stub
 		tableViewer = new TableViewer(parent, SWT.BORDER | SWT.FULL_SELECTION);
-		Table table = tableViewer.getTable();
+		 table = tableViewer.getTable();
 		TableCursor cursor = new TableCursor(table, SWT.FULL_SELECTION);
-		
+
 		TextCellEditor te = new TextCellEditor(table);
 
 		table.setLinesVisible(true);
@@ -134,8 +136,11 @@ public class TestWindow extends Shell {
 
 			@Override
 			public void update(ViewerCell cell) {
-				Entry element = (Entry) cell.getElement();
-				cell.setText(element.getName());
+				Object element = cell.getElement();
+				if (element instanceof Entry) {
+					Entry entry = (Entry) element;
+					cell.setText(entry.getName());
+				}
 			}
 		});
 		tvColA.setEditingSupport(new EditingSupport(tableViewer) {
@@ -145,9 +150,9 @@ public class TestWindow extends Shell {
 				Entry e = (Entry) element;
 				String str = (String) value;
 				e.setName(str);
-				tableViewer.refresh(e,true);
+				tableViewer.refresh(e, true);
 				cursor.setSelection(wl.indexOf(e), 0);
-				
+
 			}
 
 			@Override
@@ -164,7 +169,10 @@ public class TestWindow extends Shell {
 
 			@Override
 			protected boolean canEdit(Object element) {
-				// TODO Auto-generated method stub
+				if (!(element instanceof Entry)) {
+					System.out.println("additional element?");
+					return false;
+				}
 				return true;
 			}
 		});
@@ -179,11 +187,10 @@ public class TestWindow extends Shell {
 
 			@Override
 			public void update(ViewerCell cell) {
-				Entry element = (Entry) cell.getElement();
-				if (element.getName().isEmpty()) {
-					cell.setText("");
-				} else {
-					String num = String.format("%04d", element.getNumber());
+				Object element = cell.getElement();
+				if (element instanceof Entry) {
+					Entry entry = (Entry) element;
+					String num = String.format("%04d", entry.getNumber());
 					cell.setText(num);
 				}
 
@@ -191,6 +198,8 @@ public class TestWindow extends Shell {
 
 			@Override
 			protected void paint(Event event, Object element) {
+				if(!(element instanceof Entry))
+					return;
 				int wa = tblclmnB.getWidth();
 				int x = event.x;
 				int y = event.y;
@@ -213,12 +222,10 @@ public class TestWindow extends Shell {
 			protected void setValue(Object element, Object value) {
 				Entry e = (Entry) element;
 				String str = (String) value;
-				try
-				{
-				e.setNumber(Integer.parseInt(str));
+				try {
+					e.setNumber(Integer.parseInt(str));
+				} catch (Exception ex) {
 				}
-				catch(Exception ex)
-				{};
 				tableViewer.refresh(e, true);
 			}
 
@@ -238,20 +245,23 @@ public class TestWindow extends Shell {
 			@Override
 			protected boolean canEdit(Object element) {
 				// TODO Auto-generated method stub
-				return true;
+				return (element instanceof Entry);
 			}
 		});
 		// adds a cursor to the table
 
-	
 		cursor.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				Entry data2 = (Entry) cursor.getRow().getData();
-				int idx = wl.indexOf(data2);
-				if (idx < 0) {
-
-					System.out.println("adding empty row to data");
+				Object element = cursor.getRow().getData();
+				Entry data2;
+				try
+				{
+				data2 = (Entry) element;
+				}
+				catch(ClassCastException ex)
+				{
+					data2=testData.emptyRow();
 					wl.add(data2);
 					tableViewer.refresh();
 				}
@@ -261,8 +271,7 @@ public class TestWindow extends Shell {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				TableItem[] sel = table.getSelection();
-				if ((sel.length != 1) || (sel[0] != cursor.getRow()))
-				{
+				if ((sel.length != 1) || (sel[0] != cursor.getRow())) {
 					System.out.println("setting table selection");
 					table.setSelection(cursor.getRow());
 				}
@@ -274,23 +283,19 @@ public class TestWindow extends Shell {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
-				if (table.getItemCount() <= wl.size()) {
-					System.out.println("adding empty row");
-					Entry er = testData.emptyRow();
-					tableViewer.add(er);
-					tableViewer.refresh(er, true);
-				}
+				
 				if (cursor.getRow() == null) {
 					System.out.println("cursor not visible");
 					cursor.setSelection(table.getSelectionIndex(), 0);
 					// cursor.setVisible(true);
 					cursor.setFocus();
 				}
+				
 			}
 
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				widgetSelected(e);
+//				widgetSelected(e);
 
 			}
 		});
@@ -306,7 +311,7 @@ public class TestWindow extends Shell {
 				}
 				if (e.keyCode == SWT.DEL) {
 					wl.remove(table.getSelectionIndex());
-				}
+				}				
 			}
 
 			@Override
