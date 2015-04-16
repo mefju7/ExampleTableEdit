@@ -8,6 +8,8 @@ public class TestData {
 
 	public class Entry
 	{
+		private static final String PROP_NUMBER = "number";
+		private static final String PROP_NAME = "name";
 		PropertyChangeSupport pcs=new PropertyChangeSupport(this);
 		public void addPropertyChangeListener(PropertyChangeListener listener) {
 			pcs.addPropertyChangeListener(listener);
@@ -30,13 +32,13 @@ public class TestData {
 			return name;
 		}
 		public void setName(String name) {
-			this.name = name;
+			pcs.firePropertyChange(PROP_NAME, this.name, this.name = name);
 		}
 		public int getNumber() {
 			return number;
 		}
 		public void setNumber(int number) {
-			this.number = number;
+			pcs.firePropertyChange(PROP_NUMBER,this.number, this.number = number);
 		}
 		
 		@Override
