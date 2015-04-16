@@ -19,10 +19,12 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
@@ -176,10 +178,23 @@ public class TestWindow extends Shell {
 				Entry element = (Entry) cell.getElement();
 				String num = String.format("%04d", element.getNumber());
 				cell.setText(num);
-				if(element.getNumber()>10)
-				{
-					cell.setBackground(bgColor);
-				}
+				
+			}
+			@Override
+			protected void paint(Event event, Object element) {
+				int wa=tblclmnB.getWidth();
+				int x=event.x;
+				int y=event.y;
+				int h=event.height-1;
+				Entry e= (Entry) element;
+				int w = (e.getNumber()*wa)/50;
+				GC gc=event.gc;
+				Color oldColor = gc.getBackground();
+				gc.setBackground(bgColor);
+				gc.fillRectangle(x, y, w, h);
+				gc.setBackground(oldColor);
+				// next one prints number
+				super.paint(event, element);
 			}
 		});
 		
@@ -212,6 +227,7 @@ public class TestWindow extends Shell {
 				return true;
 			}
 		});
+	
 		//
 		//
 	}
