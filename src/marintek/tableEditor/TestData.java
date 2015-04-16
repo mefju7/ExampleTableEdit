@@ -6,6 +6,8 @@ import java.util.ArrayList;
 
 public class TestData {
 
+	private static final String EMPTY_STRING = "";
+
 	public class Entry
 	{
 		private static final String PROP_NUMBER = "number";
@@ -72,6 +74,13 @@ public class TestData {
 		return e;
 		
 	}
+
+	public Entry emptyRow() {
+		// TODO Auto-generated method stub
+		return new Entry(EMPTY_STRING, 0);
+	}
+
+	
 
 
 	

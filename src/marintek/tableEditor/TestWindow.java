@@ -16,8 +16,12 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.TableCursor;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridData;
@@ -25,6 +29,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
@@ -41,6 +46,7 @@ public class TestWindow extends Shell {
 	private TestData testData;
 //	private Table table;
 	private TableViewer tableViewer;
+	private WritableList wl;
 
 	public TestWindow(Display display) {
 		setSize(620, 479);
@@ -83,9 +89,9 @@ public class TestWindow extends Shell {
 		//
 		tableViewer.setContentProvider(new ObservableListContentProvider());
 		//
-		WritableList wl = new WritableList(testData.getDataTable(), TestData.Entry.class);
+		 wl = new WritableList(testData.getDataTable(), TestData.Entry.class);
 		tableViewer.setInput(wl);
-		
+
 		
 		MenuItem mntmNewRow = new MenuItem(menu, SWT.NONE);
 		mntmNewRow.addSelectionListener(new SelectionAdapter() {
@@ -116,6 +122,7 @@ public class TestWindow extends Shell {
 		// TODO Auto-generated method stub
 		tableViewer = new TableViewer(parent, SWT.BORDER | SWT.FULL_SELECTION);
 		Table table = tableViewer.getTable();
+		
 		TextCellEditor te = new TextCellEditor(table);
 
 		table.setLinesVisible(true);
@@ -176,8 +183,15 @@ public class TestWindow extends Shell {
 			@Override
 			public void update(ViewerCell cell) {
 				Entry element = (Entry) cell.getElement();
+				if(element.getName().isEmpty())
+				{
+					cell.setText("");
+				}
+				else
+				{
 				String num = String.format("%04d", element.getNumber());
 				cell.setText(num);
+				}
 				
 			}
 			@Override
@@ -227,8 +241,86 @@ public class TestWindow extends Shell {
 				return true;
 			}
 		});
+		// adds a cursor to the table
+		
 	
+	TableCursor cursor = new TableCursor(table, SWT.NONE);
+	cursor.addSelectionListener(new SelectionAdapter() {
+		@Override
+		public void widgetDefaultSelected(SelectionEvent e) {
+			 Entry data2 = (Entry) cursor.getRow().getData();
+			int idx = wl.indexOf(data2);
+			if(idx<0)
+			{
+				
+				System.out.println("adding empty row to data");
+				wl.add(data2);
+				tableViewer.refresh();
+			}
+			tableViewer.editElement(data2, cursor.getColumn());
+		}
+	});
+	
+	table.addSelectionListener(new SelectionListener() {
+		
+		@Override
+		public void widgetSelected(SelectionEvent e) {
+			// TODO Auto-generated method stub
+			if(table.getItemCount() <= wl.size())
+			{
+				System.out.println("adding empty row");
+				Entry er = testData.emptyRow();
+				tableViewer.add(er);
+				tableViewer.refresh(er,true);
+			}
+			if(!cursor.isVisible())
+			{
+				cursor.setSelection(table.getSelectionIndex(),0);
+				cursor.setVisible(true);
+			}
+		}
+		
+		@Override
+		public void widgetDefaultSelected(SelectionEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+	});
+	cursor.addKeyListener(new KeyListener() {
+		
+		@Override
+		public void keyReleased(KeyEvent e) {
+			if(e.keyCode==SWT.INSERT)
+			{
+				Entry er = testData.emptyRow();
+				wl.add(table.getSelectionIndex(), er);
+				tableViewer.refresh(er,true);
+				tableViewer.editElement(er, 0);
+			}
+			if(e.keyCode==SWT.DEL)
+			{
+				wl.remove(table.getSelectionIndex());
+			}
+		}
+		
+		@Override
+		public void keyPressed(KeyEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+	});
 		//
+//	cursor.addListener(SWT.FocusIn,  new  Listener() {
+//		
+//		@Override
+//		public void handleEvent(Event event) {
+//			if(table.getItemCount()<= wl.size())
+//			{
+//				System.out.println("adding empty row on focus in");
+//				tableViewer.add(testData.emptyRow());
+//			}
+//		}
+//	});
 		//
 	}
 
