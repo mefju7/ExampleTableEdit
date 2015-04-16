@@ -1,5 +1,7 @@
 package marintek.tableEditor;
 
+import java.util.ArrayList;
+
 import marintek.tableEditor.TestData.Entry;
 
 import org.eclipse.core.databinding.observable.list.WritableList;
@@ -72,25 +74,46 @@ public class TestWindow extends Shell {
 			}
 		});
 		mntmRefresh.setText("Refresh");
+		
+		
 
 		//
 		//
 		tableViewer.setContentProvider(new ObservableListContentProvider());
 		addLabelProvider(tableViewer);
-		tableViewer.setColumnProperties(TableColumnNames);
 		addCellModifier(tableViewer);
 		
-
 		//
 		WritableList wl = new WritableList(testData.getDataTable(), TestData.Entry.class);
 		tableViewer.setInput(wl);
-
+		MenuItem mntmNewRow = new MenuItem(menu, SWT.NONE);
+		mntmNewRow.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Entry rowAdded = testData.addRow();
+				wl.add(rowAdded);
+			}
+		});
+		mntmNewRow.setText("New Row");
+		
+		MenuItem mntmDebug = new MenuItem(menu, SWT.NONE);
+		mntmDebug.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				ArrayList<Entry> dt = testData.getDataTable();
+				for(Entry et: dt)
+				{
+					System.out.println(et.toString());
+				}
+			}
+		});
+		mntmDebug.setText("Debug");
 	}
 
-	private void addCellModifier(TableViewer tableViewer2) {
-		tableViewer2.setCellModifier(new ICellModifier()
+	private void addCellModifier(TableViewer tabView) {
+		tabView.setColumnProperties(TableColumnNames); // needed for modifier
+		tabView.setCellModifier(new ICellModifier()
 		{
-			private Entry e;
 
 			@Override
 			public boolean canModify(Object element, String property) {
@@ -102,7 +125,7 @@ public class TestWindow extends Shell {
 
 			@Override
 			public Object getValue(Object element, String property) {
-				e = (Entry) element;
+				Entry e = (Entry) element;
 				System.out.printf("getValue %s(%s)\n", e.toString(), property);
 				if (COL_A.equals(property))
 					return e.getName();
@@ -114,14 +137,19 @@ public class TestWindow extends Shell {
 			@Override
 			public void modify(Object element, String property, Object value) {
 				// using the Entry from getValue call
-				// TableItem ti = (TableItem) element;
+				TableItem ti = (TableItem) element;
+				 Entry e = (Entry) ti.getData();
 				String str = (String) value;
 				System.out.printf("modify %s(%s)=%s\n", e.toString(), property, str);
 				if (COL_A.equals(property))
+				{
 					e.setName(str);
+				}
 				if (COL_B.equals(property))
+				{
 					e.setNumber(Integer.parseInt(str));
-				tableViewer2.refresh();
+				}			
+				tabView.refresh(e,true);
 			}
 
 		});
@@ -130,10 +158,10 @@ public class TestWindow extends Shell {
 		CellEditor[] editors = new CellEditor[2];
 		editors[0] = new TextCellEditor(table);
 		editors[1] = new TextCellEditor(table);
-		tableViewer2.setCellEditors(editors);
+		tabView.setCellEditors(editors);
 	}
 
-	private void addLabelProvider(TableViewer tableViewer2) {
+	private void addLabelProvider(TableViewer tabView) {
 		// table = tableViewer.getTable();
 		tableViewer.setLabelProvider(new ITableLabelProvider() {
 			@Override
@@ -187,6 +215,7 @@ public class TestWindow extends Shell {
 		TableColumn tblclmnA = tableViewerColumn.getColumn();
 		tblclmnA.setWidth(100);
 		tblclmnA.setText(COL_A);
+		
 
 		TableViewerColumn tableViewerColumn_1 = new TableViewerColumn(tableViewer, SWT.NONE);
 		TableColumn tblclmnB = tableViewerColumn_1.getColumn();
@@ -194,8 +223,6 @@ public class TestWindow extends Shell {
 		tblclmnB.setText(COL_B);
 		tblclmnB.setAlignment(SWT.CENTER);
 		//
-	
-
 		//
 	}
 

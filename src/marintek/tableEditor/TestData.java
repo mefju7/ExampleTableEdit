@@ -66,5 +66,15 @@ public class TestData {
 		this.dataTable = dataTable;
 	}
 
+	public Entry addRow() {
+		Entry e = new Entry("xxx", 42);
+//		dataTable.add(e);
+		return e;
+		
+	}
+
+
+	
+
 	
 }
