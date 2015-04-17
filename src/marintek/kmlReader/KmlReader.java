@@ -10,6 +10,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -35,7 +36,12 @@ public class KmlReader {
 			Document dom = db.parse(is);
 			Element doc = dom.getDocumentElement();
 			NodeList plms = doc.getElementsByTagName("Placemark");
-			
+	
+			for(int i=0;i<plms.getLength();++i)
+			{
+				Node el=plms.item(i);
+		
+			}
 			System.out.printf("got %d placemarks\n", plms.getLength());
 		} catch (ParserConfigurationException e) {
 			// TODO Auto-generated catch block
